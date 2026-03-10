@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="ru" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Black Russia - Тест к обзвону Администратора</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;700;900&display=swap');
+    
+    * {
+      font-family: 'Rubik', sans-serif;
+    }
+
+    .fade-in {
+      animation: fadeIn 0.5s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .pulse-btn {
+      transition: all 0.3s ease;
+    }
+
+    .pulse-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+    }
+
+    .glow-text {
+      text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+    }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/element_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white m-0">
+  <div class="app-wrapper h-full w-full overflow-auto flex flex-col" style="aspect-ratio: 1 / 1;">
+   <!-- Экран приветствия -->
+   <div id="welcomeScreen" class="fade-in flex-1 flex items-center justify-center p-6">
+    <div class="max-w-2xl w-full">
+     <div class="text-center mb-12">
+      <div class="text-6xl font-black mb-6 glow-text" style="color: #3b82f6;">
+       BLACK RUSSIA
+      </div>
+      <div class="text-3xl font-bold mb-2 text-blue-300">
+       Тест к обзвону Администратора
+      </div>
+      <p class="text-slate-500 text-xs mb-8">by S. Kalashnikov - E. Kalashnikov</p>
+     </div>
+     <div class="bg-gradient-to-r from-blue-900 to-blue-800 rounded-xl p-8 mb-8 border border-blue-500 shadow-2xl">
+      <p class="text-xl leading-relaxed mb-6 text-blue-100">Здравствуйте уважаемые игроки Black Russia, здесь вы можете подготовиться к обзвону на пост Администратора</p>
+      <div class="bg-blue-950 rounded-lg p-6 border border-blue-700">
+       <p class="text-sm text-blue-200 mb-3">📋 <strong>Тест содержит 57 вопросов</strong> о правилах сервера и терминологии RP.</p>
+       <p class="text-sm text-blue-200 mb-3">⏱️ Вы можете ответить на все вопросы в любом темпе.</p>
+       <p class="text-sm text-blue-200">💾 Ваш результат будет сохранён в системе.</p>
+      </div>
+     </div>
+     <div class="mb-8">
+      <label class="block text-lg font-bold mb-3 text-blue-300"> Введите ваше имя: </label> <input id="playerNameInput" type="text" placeholder="Например: Son_Kalashnikov" class="w-full px-6 py-4 rounded-lg bg-slate-800 border-2 border-blue-500 text-white placeholder-slate-500 focus:outline-none focus:border-blue-300 text-lg">
+      <p id="nameError" class="text-red-400 text-sm mt-2 hidden">Пожалуйста, введите ваше имя</p>
+     </div><button id="startBtn" class="w-full pulse-btn bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold py-4 rounded-lg text-xl shadow-lg"> Начать тест </button>
+    </div>
+   </div><!-- Экран викторины -->
+   <div id="quizScreen" class="fade-in hidden flex-1 flex flex-col p-6">
+    <div class="max-w-3xl w-full mx-auto flex-1 flex flex-col">
+     <div class="mb-6">
+      <div class="flex justify-between items-center mb-3">
+       <span class="text-blue-300 font-bold">Вопрос <span id="currentQuestion">1</span> из <span id="totalQuestions">60</span></span> <span class="text-blue-300 font-bold">Правильно: <span id="correctCount">0</span></span>
+      </div>
+      <div class="w-full bg-slate-700 rounded-full h-2">
+       <div id="progressBar" class="bg-blue-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+      </div>
+     </div>
+     <div class="bg-gradient-to-r from-blue-900 to-blue-800 rounded-xl p-8 mb-8 border border-blue-500 flex-1">
+      <h2 id="questionText" class="text-2xl font-bold mb-8 text-blue-100">Вопрос загружается...</h2>
+      <div id="answersContainer" class="space-y-3">
+       <!-- Варианты ответов будут добавлены сюда -->
+      </div>
+     </div><button id="nextBtn" class="w-full pulse-btn bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-bold py-4 rounded-lg text-lg shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled> Следующий вопрос </button>
+    </div>
+   </div><!-- Экран результатов -->
+   <div id="resultsScreen" class="fade-in hidden flex-1 flex items-center justify-center p-6">
+    <div class="max-w-2xl w-full">
+     <div class="text-center mb-12">
+      <div class="text-5xl font-black mb-6 glow-text" style="color: #3b82f6;">
+       ✓ РЕЗУЛЬТАТЫ
+      </div>
+     </div>
+     <div class="bg-gradient-to-r from-blue-900 to-blue-800 rounded-xl p-8 mb-8 border border-blue-500 shadow-2xl">
+      <div class="text-center mb-8">
+       <p class="text-xl text-blue-200 mb-2">Игрок:</p>
+       <p id="resultPlayerName" class="text-4xl font-bold text-blue-100 mb-6">Загрузка...</p>
+      </div>
+      <div class="grid grid-cols-2 gap-6 mb-8">
+       <div class="bg-blue-950 rounded-lg p-6 text-center border border-blue-700">
+        <p class="text-blue-300 text-sm mb-2">Правильных ответов</p>
+        <p id="resultCorrect" class="text-4xl font-bold text-green-400">0/60</p>
+       </div>
+       <div class="bg-blue-950 rounded-lg p-6 text-center border border-blue-700">
+        <p class="text-blue-300 text-sm mb-2">Процент успеха</p>
+        <p id="resultPercentage" class="text-4xl font-bold text-blue-300">0%</p>
+       </div>
+      </div>
+      <div class="bg-blue-950 rounded-lg p-6 border border-blue-700 mb-8">
+       <p id="resultMessage" class="text-center text-lg text-blue-100">Спасибо за прохождение викторины!</p>
+      </div>
+     </div><button id="restartBtn" class="w-full pulse-btn bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white font-bold py-4 rounded-lg text-lg shadow-lg mb-4"> Начать заново </button>
+     <p class="text-center text-blue-300 text-sm">ℹ️ Ваш результат сохранён в системе</p>
+     <p class="text-center text-slate-500 text-xs mt-6">by S. Kalashnikov - E. Kalashnikov</p>
+    </div>
+   </div>
+  </div>
+  <script>
+    const questionsBase = [
+      { q: "Что такое блат?", a: ["Помощь новичкам", "Использование связей в личных интересах", "Выдача наказаний", "Помощь администрации"], correctText: "Использование связей в личных интересах" },
+      { q: "Что такое адекватность?", a: ["Умение писать RP", "Умение сдерживать эмоции и принимать верные решения", "Умение стрелять", "Быстро отвечать на репорт"], correctText: "Умение сдерживать эмоции и принимать верные решения" },
+      { q: "Кто такой администратор?", a: ["Игрок фракции", "Лидер организации", "Non-RP персонаж следящий за порядком", "Донатер"], correctText: "Non-RP персонаж следящий за порядком" },
+      { q: "Сколько дней нужно хранить доказательства? (дни)", type: "input", correct: "3" },
+      { q: "Можно ли снимать наказание другого администратора?", a: ["Да всегда", "Да если игрок просит", "Нет, только с разрешения ГА или ЗГА", "Можно если это варн"], correctText: "Нет, только с разрешения ГА или ЗГА" },
+      { q: "Во сколько начинается рабочий день администратора?", a: ["04:00", "09:00", "06:00", "07:00"], correctText: "09:00" },
+      { q: "Во сколько заканчивается рабочий день администратора?", a: ["21:00", "09:00", "23:00", "00:00"], correctText: "21:00" },
+      { q: "Чем администратор не может владеть?", a: ["Машиной", "Домом", "Бизнесом", "Аксессуарами"], correctText: "Бизнесом" },
+      { q: "Может ли администратор продавать имущество игрокам?", a: ["Нет", "Да без условий", "Да, но нужно подать заявку на форум", "Только с разрешения игроков"], correctText: "Да, но нужно подать заявку на форум" },
+      { q: "Может ли администратор играть в казино?", a: ["Нет никогда", "Да только после 21:00 и если репорты почищены", "Да всегда", "Только днём"], correctText: "Да только после 21:00 и если репорты почищены" },
+      { q: "Можно ли работать дальнобойщиком администратору?", a: ["Да", "Иногда", "Нет", "Только ночью"], correctText: "Нет" },
+      { q: "Наказание за DM? (минуты Jail)", type: "input", correct: "60" },
+      { q: "Наказание за DB? (минуты Jail)", type: "input", correct: "60" },
+      { q: "Наказание за Mass DM?", a: ["Jail", "Ban 3-7 дней или Warn", "Kick", "Mute"], correctText: "Ban 3-7 дней или Warn" },
+      { q: "Наказание за флуд? (минуты Mute)", type: "input", correct: "30" },
+      { q: "Наказание за CAPS Lock? (минуты Mute)", type: "input", correct: "30" },
+      { q: "Наказание за мат в VIP чат? (минуты Mute)", type: "input", correct: "30" },
+      { q: "Что означает RP?", a: ["Role Play", "Real Power", "Role Person", "Real Player"], correctText: "Role Play" },
+      { q: "Что означает NonRP?", a: ["Реалистичная игра", "Нереалистичные действия", "Новый игрок", "Ночная игра"], correctText: "Нереалистичные действия" },
+      { q: "Что означает OOC?", a: ["Информация который касается игрового процесса", "Информация который не касается игрового процесса ", "Чат фракции", "Команда"], correctText: "Информация который не касается игрового процесса " },
+      { q: "Что означает IC?", a: ["Информация который не касается игрового процесса", "Информация который касается игрового процесса", "Админ чат", "Донат"], correctText: "Информация который касается игрового процесса" },
+      { q: "Что такое MG?", a: ["Использование OOC информации в IC", "Убийство союзника", "Убийство машиной", "Читы"], correctText: "Использование OOC информации в IC" },
+      { q: "Что такое DM?", a: ["Убийство без причины", "Убийство союзника", "Убийство машиной", "Убийство на спавне"], correctText: "Убийство без причины" },
+      { q: "Что такое SK?", a: ["Убийство на месте появления", "Убийство машиной", "Массовое убийство", "Убийство союзника"], correctText: "Убийство на месте появления" },
+      { q: "Что такое TK?", a: ["Убийство союзника", "Убийство игрока", "Убийство машиной", "Убийство без причины"], correctText: "Убийство союзника" },
+      { q: "Что такое DB?", a: ["Убийство машиной", "Убийство союзника", "Убийство без причины", "Массовое убийство"], correctText: "Убийство без причины" },
+      { q: "Что такое PG?", a: ["Воображение себя героем", "Использование читов", "Массовый DM", "Спам"], correctText: "Воображение себя героем" },
+      { q: "Что такое RK?", a: ["Возвращение на место смерти", "Убийство союзника", "Убийство машиной", "Спам"], correctText: "Возвращение на место смерти" },
+      { q: "Что такое Flood?", a: ["Много одинаковых сообщений", "Реклама", "Убийство", "Читы"], correctText: "Много одинаковых сообщений" },
+      { q: "Что такое Caps?", a: ["Большие буквы", "Читы", "Флуд", "Мут"], correctText: "Большие буквы" },
+      { q: "Что такое Spawn?", a: ["Место появления игрока", "Место покупки оружия", "Место спавна машин", "Место фракции"], correctText: "Место появления игрока" },
+      { q: "Что такое Forum?", a: ["Официальный портал сервера", "Чат", "Discord", "Ивент"], correctText: "Официальный портал сервера" },
+      { q: "Чем отличается TK от FF?", a: ["TK — убийство союзника", "TK — флуд", "TK — бан", "TK — мут"], correctText: "TK — убийство союзника" },
+      { q: "Кто руководитель администрации сервера?", a: ["Куратор", "Главный администратор", "Старший администратор", "Модератор"], correctText: "Главный администратор" },
+      { q: "Кто руководитель всей администрации проекта?", a: ["Главный администратор", "Специальный администратор", "Куратор", "Старший модератор"], correctText: "Куратор" },
+      { q: "Кто может повышать администрацию?", a: ["Игроки", "ГА или ЗГА", "Модераторы", "Форум"], correctText: "ГА или ЗГА" },
+      { q: "Кто может снять выговор администратору?", a: ["Игрок", "Главный администратор или заместитель", "Модератор", "Форум"], correctText: "Главный администратор или заместитель" },
+      { q: "Администратор является каким персонажем?", a: ["IC", "OOC", "RP", "NPC"], correctText: "OOC" },
+      { q: "Может ли администратор препятствовать RP процессу?", a: ["Да", "Нет", "Иногда", "Только ночью"], correctText: "Нет" },
+      { q: "Можно ли разглашать внутреннюю информацию администрации?", a: ["Да", "Нет", "Иногда", "Только друзьям"], correctText: "Нет" },
+      { q: "Можно ли угрожать игрокам?", a: ["Да", "Нет", "Иногда", "Только в RP"], correctText: "Нет" },
+      { q: "Можно ли менять ник будучи администратором?", a: ["Да", "Нет", "Иногда", "Только ночью"], correctText: "Нет" },
+      { q: "Где рассматриваются жалобы игроков?", a: ["В личных сообщениях", "На форуме", "В игре", "В чате"], correctText: "На форуме" },
+      { q: "Можно ли выдавать наказание по доказательствам из ЛС?", a: ["Да", "Нет", "Иногда", "Только ночью"], correctText: "Нет" },
+      { q: "Что такое Kick?", a: ["Отключение игрока от сервера", "Бан", "Мут", "Варн"], correctText: "Отключение игрока от сервера" },
+      { q: "Что такое Mute?", a: ["Блокировка текстового чата", "Бан", "Кик", "Варн"], correctText: "Блокировка текстового чата" },
+      { q: "Что такое Jail?", a: ["Изоляция игрока", "Бан", "Кик", "Варн"], correctText: "Изоляция игрока" },
+      { q: "Что такое Warn?", a: ["Предупреждение игроку", "Бан", "Кик", "Мут"], correctText: "Предупреждение игроку" },
+      { q: "Что такое Ban?", a: ["Блокировка аккаунта", "Кик", "Мут", "Варн"], correctText: "Блокировка аккаунта" },
+      { q: "Что такое PermBan?", a: ["Бессрочный бан", "Бан на час", "Мут", "Варн"], correctText: "Бессрочный бан" },
+      { q: "Что такое Report Mute?", a: ["Блокировка команды /report", "Бан", "Кик", "Варн"], correctText: "Блокировка команды /report" },
+      { q: "Что означает обнуление аккаунта?", a: ["Удаление всего имущества", "Бан", "Варн", "Кик"], correctText: "Удаление всего имущества" },
+      { q: "Что такое ЧС проекта?", a: ["Список запрещённых игроков", "Бан чат", "Репорт", "Список админов"], correctText: "Список запрещённых игроков" },
+      { q: "Что запрещено администратору передавать игрокам?", a: ["Деньги", "Вещи полученные через админ команды", "Машины", "Дом"], correctText: "Вещи полученные через админ команды" },
+      { q: "Можно ли создавать транспорт перед игроками без причины?", a: ["Да", "Нет", "Иногда", "Только ночью"], correctText: "Нет" },
+      { q: "Можно ли использовать читы администрации?", a: ["Да", "Нет", "Иногда", "Только ночью"], correctText: "Нет" },
+      { q: "Что обязан знать администратор?", a: ["Только команды", "Все правила серверов", "Только RP", "Только форум"], correctText: "Все правила серверов" }
+    ];
+
+    // Shuffle answers function
+    function shuffleAnswers(question) {
+      if (question.type === "input") return question;
+      
+      const correctAnswer = question.correctText;
+      const shuffledAnswers = [...question.a].sort(() => Math.random() - 0.5);
+      const correctIndex = shuffledAnswers.indexOf(correctAnswer);
+      
+      return {
+        ...question,
+        a: shuffledAnswers,
+        correct: correctIndex
+      };
+    }
+
+    let questions = questionsBase.map(q => shuffleAnswers(q));
+
+    let currentQuestionIndex = 0;
+    let correctAnswersCount = 0;
+    let playerName = "";
+    let selectedAnswerIndex = null;
+
+    // Data SDK initialization
+    const dataHandler = {
+      onDataChanged(data) {
+        console.log("Data updated:", data);
+      }
+    };
+
+    async function initDataSdk() {
+      const result = await window.dataSdk.init(dataHandler);
+      if (!result.isOk) {
+        console.error("Failed to initialize Data SDK:", result.error);
+      }
+    }
+
+    initDataSdk();
+
+    // Event listeners
+    document.getElementById("startBtn").addEventListener("click", startQuiz);
+    document.getElementById("nextBtn").addEventListener("click", nextQuestion);
+    document.getElementById("restartBtn").addEventListener("click", restartQuiz);
+
+    document.getElementById("playerNameInput").addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        startQuiz();
+      }
+    });
+
+    function startQuiz() {
+      const nameInput = document.getElementById("playerNameInput");
+      playerName = nameInput.value.trim();
+
+      if (!playerName) {
+        document.getElementById("nameError").textContent = "Пожалуйста, введите ваше имя";
+        document.getElementById("nameError").classList.remove("hidden");
+        return;
+      }
+
+      // Check for Cyrillic characters (Russian)
+      if (/[а-яёА-ЯЁ]/.test(playerName)) {
+        document.getElementById("nameError").textContent = "❌ Ник должен быть на английском языке";
+        document.getElementById("nameError").classList.remove("hidden");
+        return;
+      }
+
+      // Check format: Name_Surname
+      if (!/^[A-Za-z]+_[A-Za-z]+$/.test(playerName)) {
+        document.getElementById("nameError").textContent = "❌ Ник должен быть в формате: Имя_Фамилия (например: John_Doe)";
+        document.getElementById("nameError").classList.remove("hidden");
+        return;
+      }
+
+      document.getElementById("nameError").classList.add("hidden");
+      document.getElementById("welcomeScreen").classList.add("hidden");
+      document.getElementById("quizScreen").classList.remove("hidden");
+
+      currentQuestionIndex = 0;
+      correctAnswersCount = 0;
+      selectedAnswerIndex = null;
+      
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      const question = questions[currentQuestionIndex];
+      document.getElementById("questionText").textContent = question.q;
+      document.getElementById("currentQuestion").textContent = currentQuestionIndex + 1;
+      document.getElementById("totalQuestions").textContent = questions.length;
+
+      const progressPercent = ((currentQuestionIndex) / questions.length) * 100;
+      document.getElementById("progressBar").style.width = progressPercent + "%";
+
+      const answersContainer = document.getElementById("answersContainer");
+      answersContainer.innerHTML = "";
+
+      if (question.type === "input") {
+        // Input field for numeric answers
+        const inputWrapper = document.createElement("div");
+        inputWrapper.className = "flex items-center gap-4";
+        
+        const input = document.createElement("input");
+        input.type = "number";
+        input.className = "w-32 px-4 py-3 rounded-lg bg-slate-700 border-2 border-slate-600 focus:border-blue-400 text-white text-lg font-semibold focus:outline-none";
+        input.placeholder = "Число";
+        input.id = "numberInput";
+        
+        input.addEventListener("input", (e) => {
+          selectedAnswerIndex = e.target.value;
+          document.getElementById("nextBtn").disabled = false;
+        });
+        
+        input.addEventListener("keypress", (e) => {
+          if (e.key === "Enter" && !document.getElementById("nextBtn").disabled) {
+            nextQuestion();
+          }
+        });
+        
+        inputWrapper.appendChild(input);
+        answersContainer.appendChild(inputWrapper);
+        input.focus();
+      } else {
+        // Multiple choice buttons
+        question.a.forEach((answer, index) => {
+          const button = document.createElement("button");
+          button.className = "w-full text-left p-4 rounded-lg bg-slate-700 hover:bg-slate-600 border-2 border-slate-600 hover:border-blue-400 transition-all text-lg font-semibold text-white";
+          button.textContent = answer;
+          button.addEventListener("click", () => selectAnswer(index));
+          answersContainer.appendChild(button);
+        });
+      }
+
+      selectedAnswerIndex = null;
+      document.getElementById("nextBtn").disabled = true;
+    }
+
+    function selectAnswer(index) {
+      selectedAnswerIndex = index;
+      const buttons = document.querySelectorAll("#answersContainer button");
+      buttons.forEach((btn, i) => {
+        if (i === index) {
+          btn.classList.add("border-blue-400", "bg-blue-800");
+        } else {
+          btn.classList.remove("border-blue-400", "bg-blue-800");
+        }
+      });
+      document.getElementById("nextBtn").disabled = false;
+    }
+
+    function showAnswerFeedback() {
+      const question = questions[currentQuestionIndex];
+      const buttons = document.querySelectorAll("#answersContainer button");
+      
+      buttons.forEach((btn, i) => {
+        if (i === question.correct) {
+          btn.classList.add("bg-green-700", "border-green-500");
+          btn.classList.remove("bg-slate-700", "border-slate-600", "hover:bg-slate-600", "hover:border-blue-400");
+        } else if (i === selectedAnswerIndex && selectedAnswerIndex !== question.correct) {
+          btn.classList.add("bg-red-700", "border-red-500");
+          btn.classList.remove("bg-slate-700", "border-slate-600", "hover:bg-slate-600", "hover:border-blue-400");
+        }
+      });
+    }
+
+    function nextQuestion() {
+      const question = questions[currentQuestionIndex];
+      let isCorrect = false;
+      
+      if (question.type === "input") {
+        // For input questions, compare the numeric values
+        isCorrect = String(selectedAnswerIndex).trim() === String(question.correct).trim();
+        showInputFeedback(isCorrect, question);
+      } else {
+        // For multiple choice
+        isCorrect = selectedAnswerIndex === question.correct;
+        showAnswerFeedback();
+      }
+      
+      if (isCorrect) {
+        correctAnswersCount++;
+      }
+
+      document.getElementById("correctCount").textContent = correctAnswersCount;
+
+      // Disable next button temporarily, then move to next question
+      document.getElementById("nextBtn").disabled = true;
+      
+      setTimeout(() => {
+        currentQuestionIndex++;
+
+        if (currentQuestionIndex < questions.length) {
+          loadQuestion();
+        } else {
+          showResults();
+        }
+      }, 1500); // Show feedback for 1.5 seconds before moving to next question
+    }
+
+    function showInputFeedback(isCorrect, question) {
+      const input = document.getElementById("numberInput");
+      const answersContainer = document.getElementById("answersContainer");
+      
+      if (!isCorrect) {
+        // Show red border for wrong answer
+        input.classList.remove("border-slate-600", "focus:border-blue-400");
+        input.classList.add("border-red-500", "focus:border-red-400", "bg-red-900");
+        
+        // Add correct answer display
+        const feedbackDiv = document.createElement("div");
+        feedbackDiv.className = "text-green-400 font-bold text-lg ml-4";
+        feedbackDiv.textContent = `✓ Правильно: ${question.correct}`;
+        
+        const wrapper = input.parentElement;
+        wrapper.appendChild(feedbackDiv);
+      } else {
+        // Show green border for correct answer
+        input.classList.remove("border-slate-600", "focus:border-blue-400");
+        input.classList.add("border-green-500", "focus:border-green-400", "bg-green-900");
+      }
+    }
+
+    async function showResults() {
+      const percentage = Math.round((correctAnswersCount / questions.length) * 100);
+
+      document.getElementById("quizScreen").classList.add("hidden");
+      document.getElementById("resultsScreen").classList.remove("hidden");
+
+      document.getElementById("resultPlayerName").textContent = playerName;
+      document.getElementById("resultCorrect").textContent = `${correctAnswersCount}/${questions.length}`;
+      document.getElementById("resultPercentage").textContent = `${percentage}%`;
+
+      let message = "";
+      if (percentage >= 80) {
+        message = "🎉 Отличный результат! Вы готовы к должности администратора!";
+      } else if (percentage >= 60) {
+        message = "✓ Хороший результат! Повторите правила и попробуйте ещё раз.";
+      } else {
+        message = "📚 Нужно повторить материал. Изучите правила и попробуйте снова.";
+      }
+
+      document.getElementById("resultMessage").textContent = message;
+
+      // Save result to Data SDK
+      if (window.dataSdk) {
+        const result = await window.dataSdk.create({
+          player_name: playerName,
+          correct_answers: correctAnswersCount,
+          total_questions: questions.length,
+          percentage: percentage,
+          completed_at: new Date().toISOString()
+        });
+
+        if (result.isOk) {
+          console.log("Result saved successfully");
+        } else {
+          console.error("Failed to save result:", result.error);
+        }
+      }
+    }
+
+    function restartQuiz() {
+      document.getElementById("resultsScreen").classList.add("hidden");
+      document.getElementById("welcomeScreen").classList.remove("hidden");
+      document.getElementById("playerNameInput").value = "";
+      document.getElementById("playerNameInput").focus();
+    }
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9da08f078419ecef',t:'MTc3MzEyNzI0Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
